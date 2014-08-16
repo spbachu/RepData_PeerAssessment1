@@ -14,7 +14,8 @@ The dataset is stored in a comma-separated-value (CSV) file and there are a tota
 
 Loading required libraries
 
-```{r echo=TRUE} 
+
+```r
 library(data.table)
 library(ggplot2)
 ```
@@ -22,17 +23,15 @@ library(ggplot2)
 
 
 Read input file 
-```{r echo=TRUE} 
 
+```r
 ds = read.csv("activity.csv")
-
 ```
 
 Removing NA values and creating clean data set
-```{r echo=TRUE} 
 
+```r
 ds1 = ds[complete.cases(ds),]
-
 ```
 
 
@@ -43,57 +42,88 @@ Creating data.table based on clean data set. Then caluculating Total number of s
 number of steps, median number of steps taken by each day.
 
 
-```{r echo=TRUE} 
+
+```r
 dt1 = data.table(ds1)
 dt2=dt1[,list(tot_steps=sum(steps),mean_steps=mean(steps),median_steps=median(steps)),by=date]
 ```
  
 
 plotting histogram of number of steps by date
-```{r echo=TRUE,fig.width=7, fig.height=6} 
-hist(dt2$tot_steps,xlab = "Total Steps per day",main = "Histogram of Total Steps per day") 
 
+```r
+hist(dt2$tot_steps,xlab = "Total Steps per day",main = "Histogram of Total Steps per day") 
 ```
 
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5.png) 
+
 Calculating and report the mean and median total number of steps taken per day.
-```{r echo=TRUE}
+
+```r
 mean(dt2$tot_steps)
+```
+
+```
+## [1] 10766
+```
+
+```r
 median(dt2$tot_steps)
+```
+
+```
+## [1] 10765
 ```
 
 **What is the average daily activity pattern?**
 
 clauculating avg steps acorss days for each interval.
 
-```{r echo=TRUE} 
+
+```r
 dt3=dt1[,list(mean_steps=mean(steps)),by=interval]
 ```
 
 Plotting a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
-```{r echo=TRUE,fig.width=7, fig.height=6} 
+
+```r
 plot(dt3$interval,dt3$mean_steps,type="l",xlab="interval",ylab="Avg. steps per day",xlim=c(0,2500))
 ```
 
+![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8.png) 
+
 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps:
 
-```{r echo=TRUE} 
+
+```r
 dt3[dt3[,mean_steps==max(dt3$mean_steps)],]
+```
+
+```
+##    interval mean_steps
+## 1:      835      206.2
 ```
 
 **Imputing missing values**
 
 total number of missing values in the dataset (i.e. the total number of rows with NAs) are:
 
-```{r echo=TRUE} 
+
+```r
 sum(is.na(ds))
+```
+
+```
+## [1] 2304
 ```
 
 Strategy to fill in missing values: mean based on 5-minute interval across days.
 
 Adding steps1 column to *ds* data frame filling NA values with mean for 5-minute interval caluculated earlier. 
 
-```{r echo=TRUE} 
+
+```r
 ds$steps1 = ds$steps
 
 for(i in 1:nrow(ds)) {
@@ -107,7 +137,8 @@ for(i in 1:nrow(ds)) {
 
 Adding Weekday factor variable to *ds* data frame.
 
-```{r echo=TRUE}
+
+```r
 ds$date1 = as.Date(ds$date)
 ds$daytype=ifelse(weekdays(ds$date1) %in% c("Saturday","Sunday"),"Weekend","Weekday")
 ds$daytype=as.factor(ds$daytype)
@@ -115,21 +146,37 @@ ds$daytype=as.factor(ds$daytype)
 
 Creating data.table based on imputed data set. Then caluculating Total number of steps taken, mean
 number of steps, median number of steps taken by each day.
-```{r echo=TRUE} 
+
+```r
 dt1 = data.table(ds)
 dt2=dt1[,list(tot_steps=sum(steps1),mean_steps=mean(steps1),median_steps=median(steps1)),by=date]
 ```
 
 **What is mean total number of steps taken per day?**
 plotting histogram of number of steps by date
-```{r echo=TRUE,fig.width=7, fig.height=6} 
+
+```r
 hist(dt2$tot_steps,xlab = "Total Steps per day",main = "Histogram of Total Steps per day")
 ```
 
+![plot of chunk unnamed-chunk-14](figure/unnamed-chunk-14.png) 
+
 Calculating and report the mean and median total number of steps taken per day.
-```{r echo=TRUE}
+
+```r
 mean(dt2$tot_steps)
+```
+
+```
+## [1] 10766
+```
+
+```r
 median(dt2$tot_steps)
+```
+
+```
+## [1] 10766
 ```
 
 There is no difference in mean values but slight difference in median value after filling in the missing values.
@@ -138,12 +185,16 @@ There is no difference in mean values but slight difference in median value afte
 
 clauculating avg steps acorss days for each interval for imputed dataset
 
-```{r echo=TRUE} 
+
+```r
 dt3=dt1[,list(mean_steps=mean(steps1)),by=list(interval,daytype)]
 ```
 
 Creating a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
 
-```{r echo=TRUE,fig.width=7, fig.height=6}
+
+```r
 qplot(interval,mean_steps,data=dt3,facets=daytype~.,geom=c("line"),ylab="Number of Steps")
 ```
+
+![plot of chunk unnamed-chunk-17](figure/unnamed-chunk-17.png) 
